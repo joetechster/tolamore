@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -19,8 +19,13 @@ import { EmptyState } from '@/src/components/EmptyState';
 import { colors, radius, spacing, typography } from '@/src/constants/theme';
 import { useCart } from '@/src/context/useCart';
 import { appendOrder } from '@/src/features/orders/storage';
+import {
+  clearShippingDetails,
+  loadShippingDetails,
+  saveShippingDetails,
+} from '@/src/features/checkout/storage';
 import { submitOrder } from '@/src/api/orders';
-import type { OrderInput, OrderSummary } from '@/src/types';
+import type { CustomerInfo, OrderInput, OrderDetail } from '@/src/types';
 import { formatCurrency } from '@/src/utils/currency';
 import { checkoutSchema, type CheckoutFormValues } from '@/src/utils/validation';
 
@@ -30,6 +35,7 @@ export default function CheckoutScreen() {
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
@@ -47,6 +53,16 @@ export default function CheckoutScreen() {
     mutationFn: submitOrder,
   });
 
+  const [savedShipping, setSavedShipping] = useState<CustomerInfo | null>(null);
+
+  useEffect(() => {
+    const hydrateShipping = async () => {
+      const saved = await loadShippingDetails();
+      setSavedShipping(saved);
+    };
+    hydrateShipping();
+  }, []);
+
   const orderItems = useMemo(
     () =>
       items.map((item) => ({
@@ -54,6 +70,7 @@ export default function CheckoutScreen() {
         title: item.product.title,
         price: item.product.price,
         quantity: item.quantity,
+        image: item.product.image,
       })),
     [items]
   );
@@ -71,6 +88,25 @@ export default function CheckoutScreen() {
     );
   }
 
+  const applySavedShipping = () => {
+    if (!savedShipping) {
+      return;
+    }
+    reset({
+      fullName: savedShipping.fullName,
+      email: savedShipping.email ?? '',
+      phone: savedShipping.phone ?? '',
+      addressLine1: savedShipping.addressLine1,
+      city: savedShipping.city,
+      postalCode: savedShipping.postalCode,
+    });
+  };
+
+  const onClearSaved = async () => {
+    await clearShippingDetails();
+    setSavedShipping(null);
+  };
+
   const onSubmit = async (values: CheckoutFormValues) => {
     const payload: OrderInput = {
       customer: {
@@ -87,13 +123,17 @@ export default function CheckoutScreen() {
 
     try {
       const response = await mutation.mutateAsync(payload);
-      const orderSummary: OrderSummary = {
+      const orderSummary: OrderDetail = {
         id: response.id,
         total: totals.subtotal,
         itemsCount: totals.itemsCount,
         createdAt: response.createdAt,
         customerName: values.fullName,
+        customer: payload.customer,
+        items: payload.items,
       };
+      await saveShippingDetails(payload.customer);
+      setSavedShipping(payload.customer);
       await appendOrder(orderSummary);
       clear();
       router.replace({
@@ -118,6 +158,33 @@ export default function CheckoutScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled">
           <Text style={styles.title}>Shipping details</Text>
+
+          {savedShipping ? (
+            <View style={styles.savedCard}>
+              <View style={styles.savedHeader}>
+                <Text style={styles.savedTitle}>Saved address</Text>
+                <Pressable onPress={onClearSaved}>
+                  <Text style={styles.savedClear}>Clear</Text>
+                </Pressable>
+              </View>
+              <Text style={styles.savedName}>{savedShipping.fullName}</Text>
+              <Text style={styles.savedText}>
+                {savedShipping.addressLine1}
+              </Text>
+              <Text style={styles.savedText}>
+                {savedShipping.city} {savedShipping.postalCode}
+              </Text>
+              {savedShipping.email ? (
+                <Text style={styles.savedText}>{savedShipping.email}</Text>
+              ) : null}
+              {savedShipping.phone ? (
+                <Text style={styles.savedText}>{savedShipping.phone}</Text>
+              ) : null}
+              <Pressable style={styles.savedButton} onPress={applySavedShipping}>
+                <Text style={styles.savedButtonText}>Use saved details</Text>
+              </Pressable>
+            </View>
+          ) : null}
 
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Full name</Text>
@@ -332,6 +399,48 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+  },
+  savedCard: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    marginBottom: spacing.lg,
+  },
+  savedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  savedTitle: {
+    fontWeight: '600',
+    color: colors.text,
+  },
+  savedClear: {
+    color: colors.danger,
+    fontSize: typography.caption,
+    fontWeight: '600',
+  },
+  savedName: {
+    fontWeight: '600',
+    color: colors.text,
+  },
+  savedText: {
+    color: colors.muted,
+    marginTop: spacing.xs,
+  },
+  savedButton: {
+    marginTop: spacing.md,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+  },
+  savedButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
   },
   summaryTitle: {
     fontWeight: '600',

@@ -28,6 +28,7 @@ export type OrderItem = {
   title: string;
   price: number;
   quantity: number;
+  image?: string;
 };
 
 export type OrderInput = {
@@ -42,4 +43,9 @@ export type OrderSummary = {
   itemsCount: number;
   createdAt: string;
   customerName: string;
+};
+
+export type OrderDetail = OrderSummary & {
+  customer: CustomerInfo;
+  items: OrderItem[];
 };

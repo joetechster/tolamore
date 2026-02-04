@@ -42,6 +42,10 @@ export default function RootLayout() {
                 gestureEnabled: false,
               }}
             />
+            <Stack.Screen
+              name="order/[id]"
+              options={{ title: 'Order Details' }}
+            />
           </Stack>
           <StatusBar style="dark" backgroundColor={colors.background} translucent={false} />
         </CartProvider>
