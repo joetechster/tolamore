@@ -1,50 +1,73 @@
-# Welcome to your Expo app 👋
+# Shopping App (Expo + React Native)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Overview
+A mobile shopping application built with Expo Router and TypeScript. Users can browse products, search and filter, view details, manage a cart, and complete a mock checkout with an order confirmation. Cart state is persisted locally.
 
-## Get started
+## Tech Stack (and why)
+- Expo + React Native: fast iteration, device testing, and a clean baseline for production patterns.
+- TypeScript: safer data models and predictable refactors.
+- Expo Router: file-based routing with a clear stack + tabs structure.
+- React Query: consistent server state, caching, and error handling for product data.
+- Cart state via React Context + reducer: minimal dependencies, easy to reason about, works well with AsyncStorage persistence.
+- AsyncStorage: persisted cart and order history (simple, non-sensitive local data).
+- React Hook Form + Zod: ergonomic form state with schema-based validation.
+- StyleSheet: consistent styling with centralized design tokens.
 
-1. Install dependencies
-
+## Setup
+1. Install dependencies:
    ```bash
    npm install
    ```
-
-2. Start the app
-
+2. Start the app:
    ```bash
-   npx expo start
+   npm run start
    ```
 
-In the output, you'll find options to open the app in a
+## API Configuration
+The base URL is centralized in `src/api/client.ts`.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Default (works out of the box): `https://fakestoreapi.com`
+- To use your own mock API (mockapi.io or similar), set an env variable:
+  ```bash
+  EXPO_PUBLIC_API_BASE_URL="https://your-mockapi.io/api/v1"
+  ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Architecture Overview
+- `app/`: Expo Router routes (tabs + stack)
+- `src/api/`: REST client + endpoints
+- `src/components/`: reusable UI elements
+- `src/constants/`: theme tokens
+- `src/features/`: domain modules (products, cart, orders)
+- `src/context/`: cart context + reducer wiring
+- `src/utils/`: helpers (currency, validation)
+- `src/types/`: shared types
 
-## Get a fresh project
+Flow summary:
+1. Products fetched via React Query and rendered in `app/(tabs)/index.tsx`.
+2. Cart state managed by context + reducer in `src/context` (with cart logic in `src/features/cart`) and persisted to AsyncStorage.
+3. Checkout form validated with Zod; `submitOrder` is mocked locally and orders are stored in AsyncStorage for history.
 
-When you're ready, run:
+## Screens
+- Product Listing (search + category filter)
+- Product Detail
+- Cart
+- Checkout
+- Order Confirmation
+- Orders History (local)
+- Profile (placeholder)
 
-```bash
-npm run reset-project
-```
+## Screenshots
+- `./screenshots/home.png`
+- `./screenshots/detail.png`
+- `./screenshots/cart.png`
+- `./screenshots/checkout.png`
+- `./screenshots/confirmation.png`
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Tradeoffs and Future Improvements
+- Orders are stored locally to keep the assessment self-contained; in production, this would post to a real backend and fetch order history via React Query.
+- Filtering is client-side for simplicity; server-side filtering would be preferable for large catalogs.
+- Add product list skeleton placeholders for a more polished loading state.
+- Add unit tests for cart reducer and checkout validation.
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Notes
+- Cart persistence uses AsyncStorage because the data is not sensitive; SecureStore would be appropriate for sensitive data.
