@@ -1,6 +1,6 @@
+import { router } from 'expo-router';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 
 import { EmptyState } from '@/src/components/EmptyState';
 import { ErrorState } from '@/src/components/ErrorState';
@@ -44,10 +44,6 @@ export default function OrdersScreen() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Your Orders</Text>
-          <Text style={styles.subtitle}>Recent purchases and receipts</Text>
-        </View>
         <FlatList
           contentContainerStyle={styles.list}
           data={orders}
@@ -122,7 +118,6 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
   header: {
@@ -140,6 +135,7 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingBottom: spacing.xxl,
+    paddingHorizontal: spacing.lg,
   },
   card: {
     borderWidth: 1,

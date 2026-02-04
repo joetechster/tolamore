@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -9,12 +11,10 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
-import { ProductCard } from '@/src/components/ProductCard';
 import { ErrorState } from '@/src/components/ErrorState';
 import { LoadingState } from '@/src/components/LoadingState';
+import { ProductCard } from '@/src/components/ProductCard';
 import { colors, radius, spacing, typography } from '@/src/constants/theme';
 import { useProducts } from '@/src/features/products/hooks';
 
@@ -96,17 +96,6 @@ export default function ProductListScreen() {
         )}
         ListHeaderComponent={
           <View style={styles.headerContainer}>
-            <View style={styles.heroCard}>
-              <Text style={styles.title}>Shop</Text>
-              <Text style={styles.heroText}>
-                Curated picks and daily essentials in one place.
-              </Text>
-              <View style={styles.heroMetaRow}>
-                <Text style={styles.heroMeta}>{data?.length ?? 0} products</Text>
-                <Text style={styles.heroMeta}>Fast delivery</Text>
-              </View>
-            </View>
-
             <View style={styles.searchRow}>
               <Ionicons name="search" size={18} color={colors.muted} />
               <TextInput
