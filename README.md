@@ -57,11 +57,13 @@ Flow summary:
 - Profile (placeholder)
 
 ## Screenshots
-- `./screenshots/home.png`
-- `./screenshots/detail.png`
-- `./screenshots/cart.png`
-- `./screenshots/checkout.png`
-- `./screenshots/confirmation.png`
+<img src="screenshots/home.png" alt="Home" width="240" />
+<img src="screenshots/product-details.png" alt="Product Details" width="240" />
+<img src="screenshots/cart.png" alt="Cart" width="240" />
+<img src="screenshots/checkout.png" alt="Checkout" width="240" />
+<img src="screenshots/order-confirmed.png" alt="Order Confirmed" width="240" />
+<img src="screenshots/orders.png" alt="Orders" width="240" />
+<img src="screenshots/order-details.png" alt="Order Details" width="240" />
 
 ## Tradeoffs and Future Improvements
 - Orders are stored locally to keep the assessment self-contained; in production, this would post to a real backend and fetch order history via React Query.
