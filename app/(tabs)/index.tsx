@@ -52,6 +52,11 @@ export default function ProductListScreen() {
     });
   }, [data, searchQuery, selectedCategory]);
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All');
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
@@ -73,85 +78,92 @@ export default function ProductListScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Shop</Text>
-          <Text style={styles.subtitle}>
-            Find essentials, curated for your day.
-          </Text>
-        </View>
-        <View style={styles.searchRow}>
-          <Ionicons name="search" size={18} color={colors.muted} />
-          <TextInput
-            placeholder="Search products"
-            placeholderTextColor={colors.muted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            style={styles.searchInput}
+      <FlatList
+        data={filteredProducts}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        refreshing={isFetching}
+        onRefresh={refetch}
+        keyboardShouldPersistTaps="handled"
+        ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
+        renderItem={({ item }) => (
+          <ProductCard
+            product={item}
+            onPress={() =>
+              router.push({ pathname: '/product/[id]', params: { id: item.id } })
+            }
           />
-        </View>
-        <View style={styles.filtersHeader}>
-          <Text style={styles.sectionLabel}>Categories</Text>
-          <View style={styles.filtersMeta}>
-            <Text style={styles.resultCount}>
-              {filteredProducts.length} items
-            </Text>
-            {searchQuery.length > 0 || selectedCategory !== 'All' ? (
-              <Pressable
-                onPress={() => {
-                  setSearchQuery('');
-                  setSelectedCategory('All');
-                }}>
-                <Text style={styles.clearText}>Clear</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipRow}>
-          {categories.map((category) => {
-            const isActive = category === selectedCategory;
-            return (
-              <Pressable
-                key={category}
-                style={[styles.chip, isActive && styles.chipActive]}
-                onPress={() => setSelectedCategory(category)}>
-                <Text
-                  style={[styles.chipText, isActive && styles.chipTextActive]}
-                  numberOfLines={1}>
-                  {category}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-        <FlatList
-          data={filteredProducts}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          refreshing={isFetching}
-          onRefresh={refetch}
-          ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
-          renderItem={({ item }) => (
-            <ProductCard
-              product={item}
-              onPress={() =>
-                router.push({ pathname: '/product/[id]', params: { id: item.id } })
-              }
-            />
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyTitle}>No matches</Text>
-              <Text style={styles.emptyMessage}>
-                Try a different search or category.
+        )}
+        ListHeaderComponent={
+          <View style={styles.headerContainer}>
+            <View style={styles.heroCard}>
+              <Text style={styles.title}>Shop</Text>
+              <Text style={styles.heroText}>
+                Curated picks and daily essentials in one place.
+              </Text>
+              <View style={styles.heroMetaRow}>
+                <Text style={styles.heroMeta}>{data?.length ?? 0} products</Text>
+                <Text style={styles.heroMeta}>Fast delivery</Text>
+              </View>
+            </View>
+
+            <View style={styles.searchRow}>
+              <Ionicons name="search" size={18} color={colors.muted} />
+              <TextInput
+                placeholder="Search products"
+                placeholderTextColor={colors.muted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={styles.searchInput}
+              />
+            </View>
+
+            <View style={styles.filterRow}>
+              <Text style={styles.filterLabel}>Filter by category</Text>
+              {(searchQuery.length > 0 || selectedCategory !== 'All') && (
+                <Pressable onPress={clearFilters}>
+                  <Text style={styles.clearText}>Clear</Text>
+                </Pressable>
+              )}
+            </View>
+
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipRow}>
+              {categories.map((category) => {
+                const isActive = category === selectedCategory;
+                return (
+                  <Pressable
+                    key={category}
+                    style={[styles.chip, isActive && styles.chipActive]}
+                    onPress={() => setSelectedCategory(category)}>
+                    <Text
+                      style={[styles.chipText, isActive && styles.chipTextActive]}
+                      numberOfLines={1}>
+                      {category}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            <View style={styles.resultsRow}>
+              <Text style={styles.resultsText}>
+                {filteredProducts.length} results
               </Text>
             </View>
-          }
-        />
-      </View>
+          </View>
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>No matches</Text>
+            <Text style={styles.emptyMessage}>
+              Try a different search or category.
+            </Text>
+          </View>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -161,23 +173,40 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  container: {
-    flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
+  listContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
-  header: {
+  headerContainer: {
+    marginBottom: spacing.lg,
+  },
+  heroCard: {
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
     marginBottom: spacing.md,
   },
   title: {
-    fontSize: typography.title + 4,
+    fontSize: typography.title + 6,
     fontWeight: '700',
     color: colors.text,
   },
-  subtitle: {
+  heroText: {
     marginTop: spacing.xs,
-    fontSize: typography.body,
     color: colors.muted,
+    fontSize: typography.body,
+  },
+  heroMetaRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  heroMeta: {
+    fontSize: typography.caption,
+    color: colors.primary,
+    fontWeight: '600',
   },
   searchRow: {
     flexDirection: 'row',
@@ -195,27 +224,18 @@ const styles = StyleSheet.create({
     flex: 1,
     color: colors.text,
   },
-  filtersHeader: {
+  filterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: spacing.sm,
   },
-  sectionLabel: {
+  filterLabel: {
     fontSize: typography.caption,
     color: colors.muted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
     fontWeight: '600',
-  },
-  filtersMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  resultCount: {
-    fontSize: typography.caption,
-    color: colors.muted,
   },
   clearText: {
     fontSize: typography.caption,
@@ -253,8 +273,12 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '600',
   },
-  list: {
-    paddingBottom: spacing.xl,
+  resultsRow: {
+    marginTop: spacing.sm,
+  },
+  resultsText: {
+    color: colors.muted,
+    fontSize: typography.caption,
   },
   emptyContainer: {
     alignItems: 'center',
